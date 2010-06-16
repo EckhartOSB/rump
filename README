@@ -1,0 +1,156 @@
+rump -- Ruby Upload Metaweblog Post
+
+Author:	Chip Camden
+Date:	June, 2010
+Site:	http://chipstips.com/?tag=rbrump
+
+PURPOSE:
+
+This utility allows you to write blog posts in plain text (with a little
+Ruby thrown in) and then upload them to a blog host that supports the
+MetaWeblog API (e.g., WordPress).
+
+USAGE:
+
+rump [-e "commands"] [file ...]
+
+where
+
+"commands"	Are Ruby statements to be executed after all of the files
+		have been evaluated.  You can specify more than one -e,
+		and the separate command strings will be evaluated
+		together with an intervening newline.  You can also embed
+		a semi-colon to separate commands within a string.
+
+file		Are zero or more files to evaluate.  Each file also
+		contains Ruby statements.  Files will be evaluated in the
+		order given.  If a file is "-", then STDIN will be
+		evaluated.
+
+
+Typically, you could invoke rump with two files: a configuration file
+that is probably common to a blog site, and a file containing a blog
+post.  The -e option is provided so you can temporarily override a
+setting in one of these files without having to edit them.  Of course,
+you can diverge from the typical in any way you please.
+
+A configuration file would look something like the provided file
+sample.blog:
+
+------------------------------------------------------------------------
+
+server   "SERVERDOMIAN.TLD"	# URL of the MetaWeblog API server
+xmlrpc   "/xmlrpc.php"		# Server's path to the MetaWeblog API
+username "USERNAME"		# Your username for posting
+password "PASSWORD"		# and password
+blogid   1			# Which blog on this server?
+publish  true			# Publish posts (false to save as draft)
+strip_single_newlines		# Replace single newlines with a space
+
+------------------------------------------------------------------------
+
+while a typical post would look more like the provided file testpost:
+
+------------------------------------------------------------------------
+
+title "Here's a test of submitting"
+content <<END
+Mary had a little lamb, it's fleece was white as snow.
+
+Here's a second paragraph.  It has <strong>bold</strong>
+and <em>italic</em> text.
+
+How about an image?
+
+<img src="http://chipstips.com/images/Chip3.jpg"/>
+END
+category "well"
+tags "tag,tag2"
+
+------------------------------------------------------------------------
+
+REFERENCE
+
+In addition to all available Ruby syntax, rump provides the following
+methods:
+
+category(name) => array
+
+Adds the category named name to the array of categories for the post,
+returning the full array of categories.
+
+content(text) => string
+
+Appends the string in text to the post's content, and returns the complete
+text for the post.
+
+replace(what,with) => array
+
+Adds an element to the array of text replacements, returning the complete
+array.  Before the post is submitted, each what will be replaced with
+with in the post's content.  You can use Regexp's or strings.
+
+strip_single_newlines => array
+
+Adds a replacement for lone newline characters to replace them with
+spaces.  This prevents an end-of-line from being taken literally by your
+blog, but still allows two or more newlines to signal a paragraph.
+
+tags(text) => string
+
+Adds text to the tags for the post (should be comma-separated tags),
+and returns the new complete set of tags.  This only works for blogs that
+recognize the MetaWeblog element "mt_keywords" for tags (e.g., WordPress).
+
+title(text) => string
+
+Appends the string in text to the post's title, and returns the new
+title.
+
+Additionally, any undefined method name will be taken as an options
+setting.  Thus,
+
+server "example.com"
+
+is equivalent to:
+
+$options[:server] = "example.com"
+
+Options that actually affect anything include:
+
+blogid		(number) the ID of the blog on your server.  This is
+		typically 1, which is the default.
+
+password	(string) the password for posting on your blog.  This has
+		no default value, and is required.
+
+publish		(boolean) true to publish the post, or false to save it
+		as a draft.  The default value is true.
+
+server		(string) the URI of the MetaWeblog server (usually your
+		blog's home URI).  This has no default value, and is
+		required.
+
+username	(string) the username for posting on your blog.  This has
+		no default value, and is required.
+
+xmlrpc		(string) the path on the server to the script that
+		processes XMLRPC requests.  On WordPress, this is
+		"/xmlrpc.php", which is the default value.
+
+A number of global variables are also accessible by your scripts, should
+you require finer control.  These are:
+
+$options	Hash of :option => value, where :option is one of the
+		options listed above.
+
+$post		Hash of :element => value, where :element is one of the
+		allowed elements in the MetaWeblog newPost request.
+		These include :description (the content), :title,
+		:categories, and :mt_keywords, among others.
+
+$replace	Array of arrays of [what, with] that represent substitutions
+		to perform after all files and commands have been
+		evaluated but before submitting the post.
+
+END

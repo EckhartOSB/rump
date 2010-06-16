@@ -1,0 +1,13 @@
+title "Here's a test of submitting"
+content <<END
+Mary had a little lamb, it's fleece was white as snow.
+
+Here's a second paragraph.  It has <strong>bold</strong>
+and <em>italic</em> text.
+
+How about an image?
+
+<img src="http://chipstips.com/images/Chip3.jpg"/>
+END
+category "well"
+tags "tag,tag2"

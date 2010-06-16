@@ -1,0 +1,76 @@
+#!/usr/bin/env ruby
+require "optparse"
+require "xmlrpc/client"
+
+commands = []
+$post = {:description => '', :title => '', :categories =>[]}
+$options = {:publish => true,
+	    :xmlrpc => '/xmlrpc.php',
+	    :blogid => 1,
+	   }
+$replace = []
+
+def content(body)
+  $post[:description] += body.to_s
+end
+
+def title(text)
+  $post[:title] += text.to_s
+end
+
+def category(cat)
+  $post[:categories] << cat.to_s
+end
+
+def tags(text)
+  $post[:mt_keywords] += text.to_s
+end
+
+def replace(what, with)
+  $replace << [what, with]
+end
+
+def strip_single_newlines
+  replace /([^\n])\n(?!\n)/m, '\1 '	# Replace lone EOLs with a space
+end
+
+class Object
+  def method_missing(symbol, *args)
+    $options[symbol] = args.first
+  end
+end
+
+optparse = OptionParser.new do |opts|
+  opts.banner = 'usage: rump [-e "commands"] file...'
+
+  opts.on('-e', '--eval "commands"', 'Commands to override scripts') do |cmds|
+    commands << cmds
+  end
+end
+
+optparse.parse!
+
+ARGV.each do |file|
+  if file == '-'
+    eval STDIN.readlines.join
+  else
+    File.open file do |f|
+      eval f.readlines.join
+    end
+  end
+end
+
+eval commands.join "\n" if commands.length > 0
+
+if $replace.length > 0
+  text = $post[:description]
+  $replace.each { |what, with| text.gsub! what, with }
+  $post[:description] = text
+end
+
+raise "server not specified" unless $options[:server]
+raise "username not specified" unless $options[:username]
+raise "password not specified" unless $options[:password]
+
+server  = XMLRPC::Client.new($options[:server], $options[:xmlrpc])
+result = server.call("metaWeblog.newPost", $options[:blogid], $options[:username], $options[:password], $post, $options[:publish])

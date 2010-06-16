@@ -1,0 +1,7 @@
+server   "SERVERDOMIAN.TLD"	# URL of the MetaWeblog API server
+xmlrpc   "/xmlrpc.php"		# Server's path to the MetaWeblog API
+username "USERNAME"		# Your username for posting
+password "PASSWORD"		# and password
+blogid   1			# Which blog on this server?
+publish  true			# Publish posts (false to save as draft)
+strip_single_newlines		# Replace single newlines with a space
