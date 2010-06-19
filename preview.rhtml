@@ -1,0 +1,14 @@
+<% require "rump_preview" %>
+<html>
+<head>
+<title><%=title%> (<%=publish ? "publish" : "draft"%>)</title>
+</head>
+<body>
+<h2><%=title%></h2>
+<p>
+<%=content%>
+</p>
+<p>Tags: <%=tags.size > 0 ? tags : "None"%>
+<p>Categories: <%=categories.length > 0 ? categories.join(",") : "Uncategorized" %></p>
+</body>
+</html>

@@ -1,0 +1,5 @@
+#!/bin/sh
+file=`mktemp /tmp/farg.XXXXXX`
+cat > $file
+`printf "$1" $file`
+rm $file

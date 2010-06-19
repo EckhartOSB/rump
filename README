@@ -8,11 +8,13 @@ PURPOSE:
 
 This utility allows you to write blog posts in plain text (with a little
 Ruby thrown in) and then upload them to a blog host that supports the
-MetaWeblog API (e.g., WordPress).
+MetaWeblog API (e.g., WordPress).  If your blog doesn't support the
+API, you can still use this utility to generate HTML to paste into your
+blog platform -- see PREVIEWING below.
 
 USAGE:
 
-rump [-e "commands"] [file ...]
+rump [-e "commands"] [-p previewfile] [-v] [file ...]
 
 where
 
@@ -22,10 +24,18 @@ where
 		together with an intervening newline.  You can also embed
 		a semi-colon to separate commands within a string.
 
+previewfile	Is the name of an RHTML file to use as a template for
+		previewing the output, without posting.  If not supplied,
+		the post will be submitted to the MetaWeblog server.
+
 file		Are zero or more files to evaluate.  Each file also
 		contains Ruby statements.  Files will be evaluated in the
 		order given.  If a file is "-", then STDIN will be
 		evaluated.
+
+-v		Indicates verbose mode.  Currently, the only verbose
+		output is to indicate successful submission, with the
+		returned post ID.
 
 
 Typically, you could invoke rump with two files: a configuration file
@@ -68,6 +78,9 @@ category "well"
 tags "tag,tag2"
 
 ------------------------------------------------------------------------
+
+A previewfile will be passed to eruby for formatting.  See the section
+PREVIEWING below.
 
 REFERENCE
 
@@ -134,6 +147,9 @@ server		(string) the URI of the MetaWeblog server (usually your
 username	(string) the username for posting on your blog.  This has
 		no default value, and is required.
 
+verbose		(boolean) verbose mode.  This is initially nil, and set to
+		true by the "-v" command line option.
+
 xmlrpc		(string) the path on the server to the script that
 		processes XMLRPC requests.  On WordPress, this is
 		"/xmlrpc.php", which is the default value.
@@ -152,5 +168,72 @@ $post		Hash of :element => value, where :element is one of the
 $replace	Array of arrays of [what, with] that represent substitutions
 		to perform after all files and commands have been
 		evaluated but before submitting the post.
+
+
+PREVIEWING
+
+It's often useful to see how your post will look on the blog before
+publishing it.  This can be accomplished by using the -p (or --preview)
+option followed by the name of an RHTML file that will be passed to
+eruby.  You can then pipe the output to your favorite browser, or
+redirect it to a file as HTML.
+
+The included file preview.rhtml provides an example previewfile.
+
+Your eruby script should require the file rump_preview.rb:
+
+<% require "rump_preview" %>
+
+This will insure that the global variables $post and $options are
+defined, as well as providing a number of useful methods:
+
+content		(string) returns the content of the post, with all
+		double newlines converted to </p><p> pairs, all
+		remaining single newlines converted to <br/>, and the
+		entire content enclosed in <p> and </p>.
+
+tags		(string) alias for $post[:mt_keywords]
+
+Additionally, any undefined method name resolves to $post[:name], so
+'title' and 'categories' can be used to access those members, for
+instance.  If $post[:name] is nil, then $options[:name] will be used --
+so 'publish', 'server', etc. can be referenced directly.
+
+FARG
+
+When piping the output to a browser, you may find the included script
+'farg' useful.  For instance, Firefox does not take input on STDIN -- it
+must be passed as a file argument instead.  farg allows you to do this,
+by redirecting STDIN to a temporary file, passing that as a file
+argument to a command, and then deleting the file.
+
+Usage:
+
+	farg cmd
+
+where	cmd	is a printf format string specifying the command to
+		execute, where the first format token will be replaced
+		by the name of the temporary file.
+
+Example:
+
+	farg 'firefox %s'
+
+This example sends STDIN to firefox as a web page.
+
+EXAMPLES FOR VIM
+
+I've also included an example script named 'rump_preview' that evaluates
+a rump file named .rump along with STDIN, and previews it using
+preview.rhtml.  If an argument is passed, it is taken as the name of the
+browser to launch.  Otherwise, it sends the result to STDOUT.
+
+A sample .vimrc file (dot.vimrc) shows how you can map keyboard shortcuts
+as follows:
+
+F9		Preview the current page, saving it as <file>.html
+F10		Preview the current page in w3m
+F11		Preview the current page in firefox
+F12		Post the current page, using .rump as a config file
 
 END

@@ -3,7 +3,7 @@ require "optparse"
 require "xmlrpc/client"
 
 commands = []
-$post = {:description => '', :title => '', :categories =>[]}
+$post = {:description => '', :title => '', :categories =>[], :mt_keywords => ''}
 $options = {:publish => true,
 	    :xmlrpc => '/xmlrpc.php',
 	    :blogid => 1,
@@ -11,11 +11,11 @@ $options = {:publish => true,
 $replace = []
 
 def content(body)
-  $post[:description] += body.to_s
+  $post[:description] << body.to_s
 end
 
 def title(text)
-  $post[:title] += text.to_s
+  $post[:title] << text.to_s
 end
 
 def category(cat)
@@ -23,7 +23,8 @@ def category(cat)
 end
 
 def tags(text)
-  $post[:mt_keywords] += text.to_s
+  $post[:mt_keywords] << ',' if $post[:mt_keywords].size > 0
+  $post[:mt_keywords] << text.to_s
 end
 
 def replace(what, with)
@@ -45,6 +46,14 @@ optparse = OptionParser.new do |opts|
 
   opts.on('-e', '--eval "commands"', 'Commands to override scripts') do |cmds|
     commands << cmds
+  end
+
+  opts.on('-p', '--preview FILE', 'Preview using eruby template') do |templ|
+    $preview_template = templ
+  end
+
+  opts.on('-v', '--verbose', 'Verbose mode') do
+    $options[:verbose] = true
   end
 end
 
@@ -68,9 +77,16 @@ if $replace.length > 0
   $post[:description] = text
 end
 
-raise "server not specified" unless $options[:server]
-raise "username not specified" unless $options[:username]
-raise "password not specified" unless $options[:password]
-
-server  = XMLRPC::Client.new($options[:server], $options[:xmlrpc])
-result = server.call("metaWeblog.newPost", $options[:blogid], $options[:username], $options[:password], $post, $options[:publish])
+if $preview_template
+  File.popen "eruby -Mf #{$preview_template}", "w" do |p|
+    p.puts "$post = #{$post.inspect}"
+    p.puts "$options = #{$options.inspect}"
+  end
+else
+  raise "server not specified" unless $options[:server]
+  raise "username not specified" unless $options[:username]
+  raise "password not specified" unless $options[:password]
+  server  = XMLRPC::Client.new($options[:server], $options[:xmlrpc])
+  result = server.call("metaWeblog.newPost", $options[:blogid], $options[:username], $options[:password], $post, $options[:publish])
+  puts "Post ##{result} #{$options[:publish] ? 'published' : 'saved as draft'}"
+end
