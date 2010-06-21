@@ -88,5 +88,5 @@ else
   raise "password not specified" unless $options[:password]
   server  = XMLRPC::Client.new($options[:server], $options[:xmlrpc])
   result = server.call("metaWeblog.newPost", $options[:blogid], $options[:username], $options[:password], $post, $options[:publish])
-  puts "Post ##{result} #{$options[:publish] ? 'published' : 'saved as draft'}"
+  puts "Post ##{result} #{$options[:publish] ? 'published' : 'saved as draft'}" if $options[:verbose]
 end
