@@ -57,7 +57,13 @@ optparse = OptionParser.new do |opts|
   end
 end
 
-optparse.parse!
+begin
+  optparse.parse!
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument => e
+  puts e
+  puts optparse
+  exit 1
+end
 
 ARGV.each do |file|
   if file == '-'
