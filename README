@@ -35,7 +35,7 @@ file		Are zero or more files to evaluate.  Each file also
 
 -v		Indicates verbose mode.  Currently, the only verbose
 		output is to indicate successful submission, with the
-		returned post ID.
+		returned post ID and a permalink, if the structure is given.
 
 
 Typically, you could invoke rump with two files: a configuration file
@@ -49,12 +49,13 @@ sample.blog:
 
 ------------------------------------------------------------------------
 
-server   "SERVERDOMIAN.TLD"	# URL of the MetaWeblog API server
-xmlrpc   "/xmlrpc.php"		# Server's path to the MetaWeblog API
-username "USERNAME"		# Your username for posting
-password "PASSWORD"		# and password
-blogid   1			# Which blog on this server?
-publish  true			# Publish posts (false to save as draft)
+server    "SERVERDOMIAN.TLD"	# URL of the MetaWeblog API server
+xmlrpc    "/xmlrpc.php"		# Server's path to the MetaWeblog API
+username  "USERNAME"		# Your username for posting
+password  "PASSWORD"		# and password
+permalink "http://SERVERDOMAIN.TLD/?p=%d"	# Permalink structure
+blogid    1			# Which blog on this server?
+publish   true			# Publish posts (false to save as draft)
 strip_single_newlines		# Replace single newlines with a space
 
 ------------------------------------------------------------------------
@@ -136,6 +137,11 @@ blogid		(number) the ID of the blog on your server.  This is
 
 password	(string) the password for posting on your blog.  This has
 		no default value, and is required.
+
+permalink	(string) format for permalink structure.  This is passed
+		to sprintf with the post ID as an argument.  So, a WordPress
+		example might look like  "http://example.com/?p=%d".  The
+		default is nil.
 
 publish		(boolean) true to publish the post, or false to save it
 		as a draft.  The default value is true.
