@@ -19,7 +19,7 @@ def title(text)
 end
 
 def category(cat)
-  $post[:categories] << cat.to_s
+  $post[:categories] << cat.to_s.gsub("\n"," ")	# MetaWebLogAPI doesn't like newlines here
 end
 
 def tags(text)
@@ -35,6 +35,14 @@ def strip_single_newlines
   replace /([^\n])\n(?!\n)/m, '\1 '	# Replace lone EOLs with a space
 end
 
+def emit(name, content)
+  endtag = "END_#{name.upcase}"
+  puts "#{name} <<#{endtag}"
+  puts content
+  puts endtag
+  puts ""
+end
+
 class Object
   def method_missing(symbol, *args)
     $options[symbol] = args.first
@@ -42,14 +50,22 @@ class Object
 end
 
 optparse = OptionParser.new do |opts|
-  opts.banner = 'usage: rump [-e "commands"] file...'
+  opts.banner = 'usage: rump [-e "commands"] [-p FILE | -f ID | -u ID] [-v] file...'
 
   opts.on('-e', '--eval "commands"', 'Commands to override scripts') do |cmds|
     commands << cmds
   end
 
+  opts.on('-f', '--fetch ID', 'Download post ID to rump source') do |id|
+    $options[:fetch] = id
+  end
+
   opts.on('-p', '--preview FILE', 'Preview using eruby template') do |templ|
     $preview_template = templ
+  end
+
+  opts.on('-u', '--update ID', 'Update post ID') do |id|
+    $options[:update] = id
   end
 
   opts.on('-v', '--verbose', 'Verbose mode') do
@@ -93,9 +109,24 @@ else
   raise "username not specified" unless $options[:username]
   raise "password not specified" unless $options[:password]
   server  = XMLRPC::Client.new($options[:server], $options[:xmlrpc])
-  result = server.call("metaWeblog.newPost", $options[:blogid], $options[:username], $options[:password], $post, $options[:publish])
-  if $options[:verbose]
-    puts "Post ##{result} #{$options[:publish] ? 'published' : 'saved as draft'}"
-    puts "Permalink: #{sprintf $options[:permalink], result}" if $options[:permalink]
+  if $options[:fetch]
+    $post = server.call("metaWeblog.getPost", $options[:fetch], $options[:username], $options[:password])
+    puts "# Post ID #{$options[:fetch]} retrieved from #{$options[:server]} on #{Date.today} at #{Time.now}"
+    puts ""
+    emit "title", $post['title']
+    $post['categories'].each { |cat| emit "category", cat }
+    emit "tags", $post['mt_keywords']
+    emit "content", $post['description']
+  else
+    if $options[:update]
+      server.call("metaWeblog.editPost", $options[:update], $options[:username], $options[:password], $post, $options[:publish])
+      result = $options[:update]	# post ID
+    else
+      result = server.call("metaWeblog.newPost", $options[:blogid], $options[:username], $options[:password], $post, $options[:publish])
+    end
+    if $options[:verbose]
+      puts "Post ##{result} #{$options[:publish] ? 'published' : 'saved as draft'}"
+      puts "Permalink: #{sprintf $options[:permalink], result}" if $options[:permalink]
+    end
   end
 end

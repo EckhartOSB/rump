@@ -14,7 +14,7 @@ blog platform -- see PREVIEWING below.
 
 USAGE:
 
-rump [-e "commands"] [-p previewfile] [-v] [file ...]
+rump [-e "commands"] [-p previewfile | -f ID | -u ID] [-v] [file ...]
 
 where
 
@@ -25,8 +25,9 @@ where
 		a semi-colon to separate commands within a string.
 
 previewfile	Is the name of an RHTML file to use as a template for
-		previewing the output, without posting.  If not supplied,
-		the post will be submitted to the MetaWeblog server.
+		previewing the output, without posting.
+
+ID		Is the post ID to fetch (-f) or update (-u).
 
 file		Are zero or more files to evaluate.  Each file also
 		contains Ruby statements.  Files will be evaluated in the
@@ -43,6 +44,10 @@ that is probably common to a blog site, and a file containing a blog
 post.  The -e option is provided so you can temporarily override a
 setting in one of these files without having to edit them.  Of course,
 you can diverge from the typical in any way you please.
+
+If -p, -f, or -u are not supplied, then the post will be uploaded as a
+new post.  If more than one of these switches occurs, -p has precedence,
+followed by -f, then -u.
 
 A configuration file would look something like the provided file
 sample.blog:
@@ -98,6 +103,14 @@ content(text) => string
 Appends the string in text to the post's content, and returns the complete
 text for the post.
 
+emit(name, content) => nil
+
+Used by -f when generating code.  Uses puts to emit:
+
+name <<END_NAME
+content
+END_NAME
+
 replace(what,with) => array
 
 Adds an element to the array of text replacements, returning the complete
@@ -135,6 +148,9 @@ Options that actually affect anything include:
 blogid		(number) the ID of the blog on your server.  This is
 		typically 1, which is the default.
 
+fetch		(number) the ID of the post to fetch from the server.  Default
+		is nil.
+
 password	(string) the password for posting on your blog.  This has
 		no default value, and is required.
 
@@ -143,12 +159,20 @@ permalink	(string) format for permalink structure.  This is passed
 		example might look like  "http://example.com/?p=%d".  The
 		default is nil.
 
+preview		(string) name of an RHTML file to use as a preview
+		template.  If this option is specified, the post will not
+		be uploaded, but rather previewed.  Default is nil, but
+		may be set with the -p command line option.
+
 publish		(boolean) true to publish the post, or false to save it
 		as a draft.  The default value is true.
 
 server		(string) the URI of the MetaWeblog server (usually your
 		blog's home URI).  This has no default value, and is
 		required.
+
+update		(number) the ID of the post to update on the server.  Default
+		is nil.
 
 username	(string) the username for posting on your blog.  This has
 		no default value, and is required.
