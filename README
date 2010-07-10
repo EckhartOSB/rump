@@ -114,8 +114,8 @@ END_NAME
 replace(what,with) => array
 
 Adds an element to the array of text replacements, returning the complete
-array.  Before the post is submitted, each what will be replaced with
-with in the post's content.  You can use Regexp's or strings.
+array.  Before the post is submitted or after the post is fetched, each what
+will be replaced with with in the post's content.  You can use Regexp's or strings.
 
 strip_single_newlines => array
 
@@ -197,7 +197,8 @@ $post		Hash of :element => value, where :element is one of the
 
 $replace	Array of arrays of [what, with] that represent substitutions
 		to perform after all files and commands have been
-		evaluated but before submitting the post.
+		evaluated but before submitting the post, or after
+		fetching it.
 
 
 PREVIEWING

@@ -1,0 +1,8 @@
+# Rump script for use when fetching posts from a WordPress blog and undoing so-called smart quotes.
+
+replace /\xE2\x80\x93/ , "-"
+replace /\xE2\x80\x99/ , "'"
+replace /\xE2\x80[\x9c\x9d]/ , '"'
+replace /\x2E\xC2/ , "."
+replace /\xa0/ , " "
+replace /\xc2/ , ''

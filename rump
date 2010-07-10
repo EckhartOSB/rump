@@ -111,6 +111,11 @@ else
   server  = XMLRPC::Client.new($options[:server], $options[:xmlrpc])
   if $options[:fetch]
     $post = server.call("metaWeblog.getPost", $options[:fetch], $options[:username], $options[:password])
+    if $replace.length > 0
+      text = $post["description"]
+      $replace.each { |what, with| text.gsub! what, with }
+      $post["description"] = text
+    end
     puts "# Post ID #{$options[:fetch]} retrieved from #{$options[:server]} on #{Date.today} at #{Time.now}"
     puts ""
     emit "title", $post['title']
