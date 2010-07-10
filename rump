@@ -50,7 +50,11 @@ class Object
 end
 
 optparse = OptionParser.new do |opts|
-  opts.banner = 'usage: rump [-e "commands"] [-p FILE | -f ID | -u ID] [-v] file...'
+  opts.banner = 'usage: rump [-e "commands"] [-p FILE | -f ID | -u ID | -d ID] [-v] file...'
+
+  opts.on('-d', '--delete ID', 'Delete post ID') do |id|
+    $options[:delete] = id
+  end
 
   opts.on('-e', '--eval "commands"', 'Commands to override scripts') do |cmds|
     commands << cmds
@@ -123,15 +127,20 @@ else
     emit "tags", $post['mt_keywords']
     emit "content", $post['description']
   else
-    if $options[:update]
-      server.call("metaWeblog.editPost", $options[:update], $options[:username], $options[:password], $post, $options[:publish])
-      result = $options[:update]	# post ID
+    if $options[:delete]
+      server.call("metaWeblog.deletePost", $options[:blogid], $options[:delete], $options[:username], $options[:password], true)
+      puts "Post ##{$options[:delete]} deleted." if $options[:verbose]
     else
-      result = server.call("metaWeblog.newPost", $options[:blogid], $options[:username], $options[:password], $post, $options[:publish])
-    end
-    if $options[:verbose]
-      puts "Post ##{result} #{$options[:publish] ? 'published' : 'saved as draft'}"
-      puts "Permalink: #{sprintf $options[:permalink], result}" if $options[:permalink]
+      if $options[:update]
+	server.call("metaWeblog.editPost", $options[:update], $options[:username], $options[:password], $post, $options[:publish])
+	result = $options[:update]	# post ID
+      else
+	result = server.call("metaWeblog.newPost", $options[:blogid], $options[:username], $options[:password], $post, $options[:publish])
+      end
+      if $options[:verbose]
+	puts "Post ##{result} #{$options[:publish] ? 'published' : 'saved as draft'}"
+	puts "Permalink: #{sprintf $options[:permalink], result}" if $options[:permalink]
+      end
     end
   end
 end
