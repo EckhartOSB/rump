@@ -264,9 +264,15 @@ browser to launch.  Otherwise, it sends the result to STDOUT.
 A sample .vimrc file (dot.vimrc) shows how you can map keyboard shortcuts
 as follows:
 
+F7		Fetch a post into the buffer, after user enters post ID
+F8		Update a post, after user enters post ID
 F9		Preview the current page, saving it as <file>.html
 F10		Preview the current page in w3m
 F11		Preview the current page in firefox
-F12		Post the current page, using .rump as a config file
+F12		Post the current page
+
+These key mappings assume that a file named .rump exists in the current
+directory to specify the server information.  The fetch makes use of
+unquote.rump (included) to remove smart quotes.
 
 END
