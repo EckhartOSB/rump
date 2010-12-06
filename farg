@@ -1,5 +1,22 @@
 #!/bin/sh
+needsterm=false
+while getopts th o; do
+  case "$o" in
+  t)	needsterm=true;;
+  h)	echo >&2 "Usage: $0 [-t] cmd"
+	exit 1;;
+  esac
+done
+shift `expr $OPTIND - 1`
 file=`mktemp /tmp/farg.XXXXXX`
 cat > $file
-`printf "$1" $file`
+if $needsterm; then
+  `printf "$*" $file` < /dev/tty
+else
+  `printf "$*" $file`
+fi
+if [ "`echo $* | cut -c 1-6`" = "spawn " ]
+then
+  sleep 5
+fi
 rm $file
